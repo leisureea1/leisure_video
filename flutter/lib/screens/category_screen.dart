@@ -99,6 +99,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             largeTitle: const Text('分类'),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
             border: null,
+            heroTag: 'category_nav',
             trailing: CupertinoButton(
               padding: EdgeInsets.zero,
               child: Icon(
@@ -203,20 +204,26 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget _buildGridView() {
     return SliverPadding(
       padding: const EdgeInsets.all(16),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 0.55,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 16,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => GestureDetector(
-            onTap: () => _openDetail(_videos[index]),
-            child: VideoCard(video: _videos[index]),
-          ),
-          childCount: _videos.length,
-        ),
+      sliver: SliverLayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.crossAxisExtent;
+          final crossAxisCount = width > 900 ? 6 : (width > 600 ? 4 : 3);
+          return SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: 0.55,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 16,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => GestureDetector(
+                onTap: () => _openDetail(_videos[index]),
+                child: VideoCard(video: _videos[index]),
+              ),
+              childCount: _videos.length,
+            ),
+          );
+        },
       ),
     );
   }

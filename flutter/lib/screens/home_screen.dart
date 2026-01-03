@@ -43,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
             largeTitle: const Text('发现'),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
             border: null,
+            heroTag: 'home_nav',
           ),
 
           if (_isLoading)

@@ -34,6 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           largeTitle: const Text('我的'),
           backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
           border: null,
+          heroTag: 'profile_nav',
           trailing: CupertinoButton(
             padding: EdgeInsets.zero,
             child: const Icon(CupertinoIcons.gear, size: 22),
@@ -173,22 +174,28 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
 
   Widget _buildGrid(List videos) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: videos.length,
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          CupertinoPageRoute(builder: (_) => DetailScreen(video: videos[index])),
-        ),
-        child: VideoCard(video: videos[index]),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final crossAxisCount = width > 900 ? 6 : (width > 600 ? 4 : 3);
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 0.65,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: videos.length,
+          itemBuilder: (context, index) => GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              CupertinoPageRoute(builder: (_) => DetailScreen(video: videos[index])),
+            ),
+            child: VideoCard(video: videos[index]),
+          ),
+        );
+      },
     );
   }
 

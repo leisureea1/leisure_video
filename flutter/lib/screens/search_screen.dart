@@ -306,25 +306,31 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildResults() {
     return SliverPadding(
       padding: const EdgeInsets.all(16),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 0.55,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 16,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              CupertinoPageRoute(
-                builder: (_) => DetailScreen(video: _results[index]),
-              ),
+      sliver: SliverLayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.crossAxisExtent;
+          final crossAxisCount = width > 900 ? 6 : (width > 600 ? 4 : 3);
+          return SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: 0.55,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 16,
             ),
-            child: VideoCard(video: _results[index]),
-          ),
-          childCount: _results.length,
-        ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (_) => DetailScreen(video: _results[index]),
+                  ),
+                ),
+                child: VideoCard(video: _results[index]),
+              ),
+              childCount: _results.length,
+            ),
+          );
+        },
       ),
     );
   }

@@ -271,6 +271,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 800; // macOS 或大屏
 
     if (_isFullscreen) {
       return Scaffold(
@@ -292,81 +294,171 @@ class _PlayerScreenState extends State<PlayerScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 16),
         ),
       ),
-      body: Column(
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: _buildVideoPlayer(),
-          ),
-          Expanded(
-            child: Container(
-              color: isDark ? Colors.black : Colors.white,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      '正在播放: ${widget.episodes[_currentEpisodeIndex].name}',
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                    ),
+      body: isDesktop ? _buildDesktopLayout(isDark) : _buildMobileLayout(isDark),
+    );
+  }
+
+  // macOS 桌面布局：左边选集列表，右边播放器
+  Widget _buildDesktopLayout(bool isDark) {
+    return Row(
+      children: [
+        // 左侧选集列表
+        Container(
+          width: 220,
+          color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '选集',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      '选集',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 5,
-                        childAspectRatio: 1.8,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemCount: widget.episodes.length,
-                      itemBuilder: (context, index) {
-                        final isPlaying = index == _currentEpisodeIndex;
-                        return GestureDetector(
-                          onTap: () => _playEpisode(index),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isPlaying
-                                  ? (isDark ? Colors.white : Colors.black)
-                                  : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              widget.episodes[index].name,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isPlaying
-                                    ? (isDark ? Colors.black : Colors.white)
-                                    : (isDark ? Colors.white : Colors.black),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                ),
               ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: widget.episodes.length,
+                  itemBuilder: (context, index) {
+                    final isPlaying = index == _currentEpisodeIndex;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: GestureDetector(
+                        onTap: () => _playEpisode(index),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isPlaying
+                                ? (isDark ? Colors.white : Colors.black)
+                                : (isDark ? Colors.grey.shade800 : Colors.white),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            widget.episodes[index].name,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isPlaying
+                                  ? (isDark ? Colors.black : Colors.white)
+                                  : (isDark ? Colors.white : Colors.black),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        // 右侧播放器
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  color: Colors.black,
+                  child: Center(child: _buildVideoPlayer()),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                color: isDark ? Colors.black : Colors.white,
+                child: Text(
+                  '正在播放: ${widget.episodes[_currentEpisodeIndex].name}',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 移动端布局：上方播放器，下方选集
+  Widget _buildMobileLayout(bool isDark) {
+    return Column(
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: _buildVideoPlayer(),
+        ),
+        Expanded(
+          child: Container(
+            color: isDark ? Colors.black : Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    '正在播放: ${widget.episodes[_currentEpisodeIndex].name}',
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    '选集',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      childAspectRatio: 1.8,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: widget.episodes.length,
+                    itemBuilder: (context, index) {
+                      final isPlaying = index == _currentEpisodeIndex;
+                      return GestureDetector(
+                        onTap: () => _playEpisode(index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isPlaying
+                                ? (isDark ? Colors.white : Colors.black)
+                                : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            widget.episodes[index].name,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isPlaying
+                                  ? (isDark ? Colors.black : Colors.white)
+                                  : (isDark ? Colors.white : Colors.black),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
